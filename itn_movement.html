@@ -633,36 +633,54 @@ window.addEventListener('DOMContentLoaded', async () => {
 async function loadUsers() {
   const res = await fetch(USERS_CSV);
   if (!res.ok) throw new Error('Cannot load ' + USERS_CSV);
-  Papa.parse(await res.text(), {
-    header:true, skipEmptyLines:true,
-    complete: r => r.data.forEach(row => {
-      const u = (row.username||'').trim(); if (!u) return;
-      users[u] = { full_name:(row.full_name||'').trim(), role:(row.role||'').trim(),
-                   district:(row.district||'').trim(), staff_id:(row.staff_id||'').trim(),
-                   vehicle:(row.vehicle||'').trim(), phone:(row.phone||'').trim() };
-    })
+  const text = await res.text();
+  return new Promise((resolve, reject) => {
+    Papa.parse(text, {
+      header: true, skipEmptyLines: true,
+      complete: result => {
+        result.data.forEach(row => {
+          const u = (row.username||'').trim(); if (!u) return;
+          users[u] = {
+            full_name: (row.full_name||'').trim(),
+            role:      (row.role||'').trim(),
+            district:  (row.district||'').trim(),
+            staff_id:  (row.staff_id||'').trim(),
+            vehicle:   (row.vehicle||'').trim(),
+            phone:     (row.phone||'').trim()
+          };
+        });
+        console.log('[Users] Loaded:', Object.keys(users).length, 'users');
+        resolve();
+      },
+      error: err => reject(err)
+    });
   });
 }
 
 async function loadCascadeData() {
   const res = await fetch(CASCADE_CSV);
   if (!res.ok) return;
-  Papa.parse(await res.text(), {
-    header:true, skipEmptyLines:true,
-    complete: r => {
-      locationData = {};
-      r.data.forEach(row => {
-        const d=(row.adm1||'').trim(), c=(row.adm2||'').trim(), p=(row.hf||'').trim();
-        if (!d||!c||!p) return;
-        if (!locationData[d]) locationData[d]={};
-        if (!locationData[d][c]) locationData[d][c]=new Set();
-        locationData[d][c].add(p);
-      });
-      for (const d in locationData)
-        for (const c in locationData[d])
-          locationData[d][c] = [...locationData[d][c]].sort();
-      populateDistrictSelect();
-    }
+  const text = await res.text();
+  return new Promise((resolve) => {
+    Papa.parse(text, {
+      header: true, skipEmptyLines: true,
+      complete: r => {
+        locationData = {};
+        r.data.forEach(row => {
+          const d=(row.adm1||'').trim(), c=(row.adm2||'').trim(), p=(row.hf||'').trim();
+          if (!d||!c||!p) return;
+          if (!locationData[d]) locationData[d]={};
+          if (!locationData[d][c]) locationData[d][c]=new Set();
+          locationData[d][c].add(p);
+        });
+        for (const d in locationData)
+          for (const c in locationData[d])
+            locationData[d][c] = [...locationData[d][c]].sort();
+        populateDistrictSelect();
+        resolve();
+      },
+      error: () => resolve()
+    });
   });
 }
 
