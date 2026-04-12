@@ -1,7 +1,7 @@
 // ============================================================
 //  SBD 2026 — ITN Distribution Survey · Service Worker
 //  BUMP THIS VERSION STRING every time you upload new files:
-const CACHE_VERSION = 'sbd-2026-v14';
+const CACHE_VERSION = 'sbd-2026-v15';
 // ============================================================
 
 // ── YOUR MAIN APP FILES ───────────────────────────────────────
@@ -148,33 +148,52 @@ self.addEventListener('fetch', event => {
   if (isExternal && !isAllowedCDN) return;
 
   event.respondWith(
-    caches.match(event.request).then(cached => {
-      if (cached) {
-        // Serve from cache instantly + refresh in background
-        fetch(event.request.clone())
-          .then(r => {
-            if (r && r.status === 200) {
-              caches.open(CACHE_VERSION).then(c => c.put(event.request, r));
-            }
-          })
-          .catch(() => {});
-        return cached;
-      }
-      // Not cached — fetch and store
-      return fetch(event.request)
-        .then(r => {
-          if (!r || r.status !== 200) return r;
-          const toCache = r.clone();
-          caches.open(CACHE_VERSION).then(c => c.put(event.request, toCache));
-          return r;
-        })
-        .catch(() => {
-          // Network failed — return offline page for navigation
+    (async () => {
+      const isHTML = event.request.mode === 'navigate' ||
+                     event.request.destination === 'document' ||
+                     url.endsWith('.html') || url.endsWith('.js') || url.endsWith('.json');
+
+      // ── HTML/JS/JSON: Network-first so updates apply immediately ──
+      if (isHTML) {
+        try {
+          const netRes = await fetch(event.request);
+          if (netRes && netRes.status === 200) {
+            const cache = await caches.open(CACHE_VERSION);
+            cache.put(event.request, netRes.clone());
+          }
+          return netRes;
+        } catch(e) {
+          // Offline fallback: serve from cache
+          const cached = await caches.match(event.request);
+          if (cached) return cached;
           if (event.request.mode === 'navigate')
             return caches.match(new URL('./offline.html', self.location.href).href);
           return new Response('', { status: 503 });
-        });
-    })
+        }
+      }
+
+      // ── Images/fonts/CSS: Cache-first (rarely change) ──────────
+      const cached = await caches.match(event.request);
+      if (cached) {
+        // Refresh in background
+        fetch(event.request.clone()).then(r => {
+          if (r && r.status === 200)
+            caches.open(CACHE_VERSION).then(c => c.put(event.request, r));
+        }).catch(() => {});
+        return cached;
+      }
+      // Not in cache — fetch and store
+      try {
+        const r = await fetch(event.request);
+        if (r && r.status === 200) {
+          const cache = await caches.open(CACHE_VERSION);
+          cache.put(event.request, r.clone());
+        }
+        return r;
+      } catch(e) {
+        return new Response('', { status: 503 });
+      }
+    })()
   );
 });
 
