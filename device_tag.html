@@ -20,7 +20,6 @@
         * { margin:0; padding:0; box-sizing:border-box; }
         body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
 
-        /* ── SCAN SCREEN ── */
         .scan-screen {
             min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;
             background: var(--blue);
@@ -69,7 +68,6 @@
         .btn-stop  { background:var(--red); color:#fff; margin-top:10px; }
         .btn-stop:hover  { background:#b91c1c; }
 
-        /* ── APP SCREEN ── */
         .app-screen { display:none; min-height:100vh; }
         .app-screen.show { display:block; }
 
@@ -93,7 +91,6 @@
 
         .app-body { max-width:500px; margin:0 auto; padding:20px 16px 40px; }
 
-        /* ── DEVICE TAG ── */
         .device-tag { background:var(--card); border-radius:18px; box-shadow:var(--shadow-lg); overflow:hidden; }
 
         .card-top {
@@ -139,26 +136,26 @@
         .qr-code-id { margin-top:14px; font-family:'Oswald',sans-serif; font-size:22px; font-weight:700; color:var(--blue); letter-spacing:3px; word-break:break-all; }
         .qr-label   { font-size:10px; color:var(--text-light); letter-spacing:.5px; margin-top:4px; font-weight:500; }
 
-        /* NOTIF */
+        /* Sync status */
+        .sync-status {
+            margin-top:14px; padding:10px 14px; border-radius:10px;
+            font-size:12px; font-weight:600; text-align:center; display:none;
+        }
+        .sync-status.syncing { display:block; background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; }
+        .sync-status.synced  { display:block; background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; }
+        .sync-status.failed  { display:block; background:#fef2f2; color:#dc2626; border:1px solid #fecaca; }
+
         .notif { position:fixed; top:20px; left:50%; transform:translateX(-50%) translateY(-100px); padding:12px 24px; border-radius:12px; font-family:'Oswald',sans-serif; font-size:13px; letter-spacing:.5px; box-shadow:0 8px 24px rgba(0,0,0,.2); z-index:9999; transition:transform .3s; white-space:nowrap; }
         .notif.show { transform:translateX(-50%) translateY(0); }
         .notif.success { background:var(--green); color:#fff; }
         .notif.error   { background:var(--red);   color:#fff; }
 
-        @media print {
-            .app-header { display:none !important; }
-            .app-body { padding:0; }
-            .device-tag { box-shadow:none; border:2px solid #000; }
-        }
-        @media (max-width:400px) {
-            .scan-card { padding:28px 18px; }
-            .info-grid { grid-template-columns:1fr; }
-        }
+        @media print { .app-header { display:none !important; } .app-body { padding:0; } .device-tag { box-shadow:none; border:2px solid #000; } }
+        @media (max-width:400px) { .scan-card { padding:28px 18px; } .info-grid { grid-template-columns:1fr; } }
     </style>
 </head>
 <body>
 
-<!-- ── SCAN SCREEN ── -->
 <div class="scan-screen" id="scanScreen">
     <div class="scan-card">
         <div class="scan-brand">
@@ -168,15 +165,11 @@
             <h1>DEVICE TAG</h1>
             <p>SBD 2026 · ICF-SL / NMCP</p>
         </div>
-
         <div class="err-box" id="errBox"></div>
-
-        <p class="scan-hint">Point your camera at the <strong>SBD ID card QR code</strong> to load your Device Tag.</p>
-
+        <p class="scan-hint">Point your camera at your <strong>SBD ID card QR code</strong> to load your Device Tag.</p>
         <div class="reader-wrap" id="readerWrap">
             <div id="reader-login"></div>
         </div>
-
         <button class="scan-btn btn-start" id="btnStart" onclick="startScan()">
             <svg viewBox="0 0 24 24" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
             START SCANNER
@@ -185,7 +178,6 @@
     </div>
 </div>
 
-<!-- ── APP SCREEN ── -->
 <div class="app-screen" id="appScreen">
     <div class="app-header">
         <div class="hdr-row">
@@ -198,7 +190,7 @@
                     <div class="hdr-sub" id="hdrSub">SBD 2026</div>
                 </div>
             </div>
-            <button class="rescan-btn" onclick="doLogout()">⏏ LOGOUT</button>
+            <button class="rescan-btn" onclick="doLogout()">&#x23CF; LOGOUT</button>
         </div>
     </div>
     <div class="app-body">
@@ -213,15 +205,19 @@
             </div>
             <div class="card-body" id="cardBody"></div>
         </div>
+        <div class="sync-status" id="syncStatus"></div>
     </div>
 </div>
 
 <div class="notif" id="notif"></div>
 
 <script>
+// ── GAS URL ──
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbymRy-M5v0fVLWUjw4IXYhd1oIR2ZvnP_Dzr_iGR-Th0cMIpmE2ntGeujWYH7-C6NHIzA/exec';
+
 var scanner = null;
 
-/* ── SCANNER ── */
+// ── SCANNER ──
 function startScan() {
     document.getElementById('readerWrap').style.display = 'block';
     document.getElementById('btnStart').style.display   = 'none';
@@ -257,11 +253,9 @@ function resetScanUI() {
     document.getElementById('btnStop').style.display    = 'none';
 }
 
-/* ── PARSE QR ── */
+// ── PARSE QR (SBD ID card format only) ──
 function parseQR(text) {
-    var r = { code:'', name:'', tel:'', role:'', district:'', chiefdom:'', section:'', facility:'', community:'', school:'', _format:'' };
-
-    // SBD plain-text format
+    var r = { code:'', name:'', tel:'', role:'', district:'', chiefdom:'', section:'', facility:'', community:'', school:'' };
     if (text.indexOf('Name:') !== -1 || text.indexOf('ID:') !== -1) {
         text.split('\n').forEach(function(line) {
             var sep = line.indexOf(':');
@@ -275,49 +269,25 @@ function parseQR(text) {
             if (key === 'tel')      r.tel      = val;
         });
         if (!r.code && r.tel) r.code = 'SBD-' + r.tel;
-        r._format = 'sbd';
         return r;
     }
-
-    // JSON format (Device Tag)
-    try {
-        var obj = JSON.parse(text);
-        r._format  = 'json';
-        r.code     = obj.code     || obj.id       || obj.ID   || '';
-        r.name     = obj.name     || obj.Name     || obj.fullName || '';
-        r.tel      = obj.phone    || obj.tel      || obj.telephone || '';
-        r.role     = obj.role     || obj.Role     || '';
-        r.district = obj.district || obj.District || obj.adm1 || '';
-        r.chiefdom = obj.chiefdom || obj.Chiefdom || obj.adm2 || '';
-        r.section  = obj.section  || obj.Section  || obj.adm3 || '';
-        r.facility = obj.facility || obj.Facility || obj.hf   || '';
-        r.community= obj.community|| obj.Community|| '';
-        r.school   = obj.school   || obj.School   || obj.school_name || '';
-        return r;
-    } catch(e) {}
-
-    r._format = 'unknown';
-    return r;
+    return null; // Not an SBD ID card
 }
 
-/* ── VALIDATE ── */
+// ── VALIDATE ──
 function validateQR(d) {
-    if (d._format === 'unknown') {
-        return 'Unrecognised QR code. Please scan a valid SBD ID card.';
-    }
+    if (!d) return 'Unrecognised QR code. Scan your SBD ID card.';
     var missing = [];
     if (!d.name)     missing.push('Name');
     if (!d.code)     missing.push('ID');
     if (!d.role)     missing.push('Role');
     if (!d.district) missing.push('District');
     if (!d.tel)      missing.push('Telephone');
-    if (missing.length) {
-        return 'Invalid QR — missing required field' + (missing.length > 1 ? 's' : '') + ': ' + missing.join(', ') + '.';
-    }
+    if (missing.length) return 'Invalid QR — missing: ' + missing.join(', ') + '.';
     return null;
 }
 
-/* ── HANDLE QR ── */
+// ── HANDLE QR ──
 function handleQR(text) {
     var data  = parseQR(text);
     var error = validateQR(data);
@@ -325,53 +295,82 @@ function handleQR(text) {
     loadCard(data);
 }
 
-/* ── LOAD CARD ── */
+// ── SUBMIT TO GAS ──
+function submitToGAS(d) {
+    var syncEl = document.getElementById('syncStatus');
+    syncEl.textContent = '⏳ Syncing to ICF-SL server…';
+    syncEl.className = 'sync-status syncing';
+
+    var payload = {
+        action:       'device_tag',
+        year:         new Date().getFullYear().toString(),
+        id:           d.code,
+        name:         d.name,
+        tel:          d.tel,
+        role:         d.role,
+        district:     d.district,
+        chiefdom:     d.chiefdom || '',
+        facility:     d.facility || '',
+        generated_at: new Date().toISOString()
+    };
+
+    fetch(GAS_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    }).then(function() {
+        syncEl.textContent = '✅ Synced to ICF-SL server';
+        syncEl.className = 'sync-status synced';
+    }).catch(function() {
+        syncEl.textContent = '❌ Could not sync — will retry when online';
+        syncEl.className = 'sync-status failed';
+    });
+}
+
+// ── LOAD CARD ──
 function loadCard(d, silent) {
     var YEAR = new Date().getFullYear().toString();
-
-    // Persist session
     localStorage.setItem('sbd_card_session', JSON.stringify(d));
 
     document.getElementById('scanScreen').style.display = 'none';
     document.getElementById('appScreen').classList.add('show');
     document.getElementById('hdrSub').textContent = d.code;
-
     document.getElementById('cardName').textContent  = d.name;
     document.getElementById('cardRole').textContent  = d.role;
-    document.getElementById('cardPhone').textContent = '📞 ' + d.tel;
+    document.getElementById('cardPhone').textContent = '\uD83D\uDCDE ' + d.tel;
 
     var body = document.getElementById('cardBody');
     body.innerHTML = '';
 
     function cell(key, val) {
         if (!val || !val.trim()) return '';
-        return '<div class="info-cell">' +
-            '<div class="info-key">' + key + '</div>' +
-            '<div class="info-val">' + val + '</div>' +
-        '</div>';
+        return '<div class="info-cell"><div class="info-key">' + key + '</div><div class="info-val">' + val + '</div></div>';
     }
 
-    // ── Card fields: only the 6 required
     var cardCells =
-        cell('Year',           YEAR)        +
-        cell('ID Number',      d.code)      +
-        cell('Telephone',      d.tel)       +
-        cell('District',       d.district)  +
-        cell('Chiefdom',       d.chiefdom)  +
+        cell('Year',           YEAR)       +
+        cell('ID Number',      d.code)     +
+        cell('Telephone',      d.tel)      +
+        cell('District',       d.district) +
+        cell('Chiefdom',       d.chiefdom) +
         cell('Health Facility',d.facility);
 
     body.innerHTML +=
         '<div class="sec-title">Card Details</div>' +
         '<div class="info-grid">' + cardCells + '</div>';
 
-    // ── QR encodes all 6 fields
+    // QR encodes the device fields — this is what device_tracking.html will scan
     var qrPayload = JSON.stringify({
+        action:   'device_tag',
         year:     YEAR,
         id:       d.code,
-        tel:      d.tel       || '',
-        district: d.district  || '',
-        chiefdom: d.chiefdom  || '',
-        facility: d.facility  || ''
+        name:     d.name,
+        tel:      d.tel      || '',
+        role:     d.role     || '',
+        district: d.district || '',
+        chiefdom: d.chiefdom || '',
+        facility: d.facility || ''
     });
 
     body.innerHTML +=
@@ -379,7 +378,7 @@ function loadCard(d, silent) {
             '<div class="qr-divider"><span class="qr-divider-text">DEVICE QR CODE</span></div>' +
             '<div class="qr-frame"><div id="qrEl"></div></div>' +
             '<div class="qr-code-id">' + d.code + '</div>' +
-            '<div class="qr-label">Scan to verify · SBD ' + YEAR + '</div>' +
+            '<div class="qr-label">Scan to register device · SBD ' + YEAR + '</div>' +
         '</div>';
 
     setTimeout(function() {
@@ -396,41 +395,42 @@ function loadCard(d, silent) {
         }
     }, 80);
 
-    if (!silent) showNotif('Card loaded — ' + d.name, 'success');
+    // Submit to GAS (only on fresh scan, not restore)
+    if (!silent) {
+        submitToGAS(d);
+        showNotif('Card loaded — ' + d.name, 'success');
+    }
 }
 
-/* ── LOGOUT ── */
+// ── LOGOUT ──
 function doLogout() {
     localStorage.removeItem('sbd_card_session');
     document.getElementById('appScreen').classList.remove('show');
     document.getElementById('scanScreen').style.display = '';
     document.getElementById('errBox').classList.remove('show');
+    document.getElementById('syncStatus').className = 'sync-status';
     var el = document.getElementById('qrEl');
     if (el) el.innerHTML = '';
     showNotif('Logged out', 'success');
 }
 
-/* ── AUTO-RESTORE SESSION ON PAGE LOAD ── */
+// ── AUTO-RESTORE SESSION ──
 window.addEventListener('DOMContentLoaded', function() {
     var saved = localStorage.getItem('sbd_card_session');
     if (saved) {
         try {
             var d = JSON.parse(saved);
-            if (d && d.name && d.code) {
-                loadCard(d, true); // silent = no toast on restore
-                return;
-            }
+            if (d && d.name && d.code) { loadCard(d, true); return; }
         } catch(e) {}
         localStorage.removeItem('sbd_card_session');
     }
 });
 
-/* ── HELPERS ── */
+// ── HELPERS ──
 function showErr(msg) {
     var el = document.getElementById('errBox');
-    el.textContent = msg;
-    el.classList.remove('show');
-    void el.offsetWidth; // force reflow for re-animation
+    el.textContent = msg; el.classList.remove('show');
+    void el.offsetWidth;
     el.classList.add('show');
     showNotif('Invalid QR code', 'error');
 }
