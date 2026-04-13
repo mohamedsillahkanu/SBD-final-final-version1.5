@@ -1,7 +1,7 @@
 // ============================================================
 //  SBD 2026 — ITN Distribution Survey · Service Worker
 //  BUMP THIS VERSION STRING every time you upload new files:
-const CACHE_VERSION = 'sbd-2026-v17';
+const CACHE_VERSION = 'sbd-2026-v18';
 // ============================================================
 
 // ── YOUR MAIN APP FILES ───────────────────────────────────────
