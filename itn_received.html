@@ -283,7 +283,7 @@
         </div>
 
         <!-- STEP 1: QR SCAN -->
-        <div id="stepScan">
+        <div id="stepScan"><div id="phuMismatchErr" style="display:none;"></div>
             <div class="scanner-area">
                 <div class="scanner-title">SCAN DELIVERY QR CODE</div>
                 <div class="video-wrap">
@@ -325,8 +325,8 @@
                         <div class="field"><label class="label">District</label><input class="input prefilled" readonly id="fDistrict"></div>
                         <div class="field"><label class="label">Chiefdom</label><input class="input prefilled" readonly id="fChiefdom"></div>
                         <div class="field"><label class="label">PHU</label><input class="input prefilled" readonly id="fPHU"></div>
-                        <div class="field"><label class="label">DMS Staff</label><input class="input prefilled" readonly id="fDmsStaff"></div>
-                        <div class="field"><label class="label">Driver</label><input class="input prefilled" readonly id="fDriver"></div>
+                        
+                        <div class="field"><label class="label">Conveyor</label><input class="input prefilled" readonly id="fConveyor"></div>
                         <div class="field"><label class="label">Vehicle Plate</label><input class="input prefilled" readonly id="fVehicle"></div>
                     </div>
                 </div>
@@ -338,15 +338,11 @@
                 </div>
                 <div class="card-body">
                     <p style="font-size:0.82rem;color:#555;margin-bottom:14px;">Enter the <strong>physical count</strong> of ITNs actually received.</p>
-                    <div class="qty-row" id="qtyRow">
-                        <div class="qty-box" id="qtyIG2Box"><div class="qty-label">Expected IG2</div><div class="qty-val" id="qtyIG2Expected">—</div><div class="qty-sub">From dispatch</div></div>
-                        <div class="qty-box" id="qtyPBOBox"><div class="qty-label">Expected PBO</div><div class="qty-val" id="qtyPBOExpected">—</div><div class="qty-sub">From dispatch</div></div>
-                        <div class="qty-box" id="qtyTotalBox"><div class="qty-label">Expected Total</div><div class="qty-val" id="qtyTotalExpected">—</div><div class="qty-sub">From dispatch</div></div>
+                    <div class="qty-row" id="qtyRow" style="grid-template-columns:1fr;">
+                        <div class="qty-box" id="qtyTotalBox"><div class="qty-label">Expected Dual-AI ITNs</div><div class="qty-val" id="qtyTotalExpected">—</div><div class="qty-sub">From dispatch</div></div>
                     </div>
-                    <div class="grid-3" style="margin-top:16px;">
-                        <div class="field"><label class="label">Physical Count — IG2 <span style="color:var(--red);">*</span></label><input type="number" class="input" id="physIG2" min="0" placeholder="0" oninput="recalcCount()"></div>
-                        <div class="field"><label class="label">Physical Count — PBO <span style="color:var(--red);">*</span></label><input type="number" class="input" id="physPBO" min="0" placeholder="0" oninput="recalcCount()"></div>
-                        <div class="field"><label class="label">Physical Total</label><input class="input" readonly id="physTotal" placeholder="—"></div>
+                    <div style="margin-top:16px;">
+                        <div class="field"><label class="label">Physical Count — Dual-AI ITNs <span style="color:var(--red);">*</span></label><input type="number" class="input" id="physTotal" min="0" placeholder="0" oninput="recalcCount()"></div>
                     </div>
                     <div id="varianceStatus" style="display:none;"></div>
                     <div id="discrepancySection" style="display:none;margin-top:14px;">
@@ -354,7 +350,7 @@
                             <label class="label">REASON FOR DISCREPANCY <span style="color:var(--red);">*</span></label>
                             <select class="select" id="discReason">
                                 <option value="">—Select reason—</option>
-                                <option>Short delivery by driver</option>
+                                <option>Short delivery by conveyor</option>
                                 <option>ITNs damaged in transit</option>
                                 <option>Packaging error at DMS</option>
                                 <option>ITNs stolen/lost in transit</option>
@@ -378,18 +374,18 @@
             <div class="card">
                 <div class="card-header" id="driverConfirmHeader">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                    <span>STEP 3 — DRIVER SIGN-OFF</span>
+                    <span>STEP 3 — CONVEYOR SIGN-OFF</span>
                 </div>
                 <div class="card-body">
                     <div id="driverAccountabilityNotice"></div>
                     <div class="driver-confirm" style="margin-top:14px;">
                         <div class="grid-2" style="margin-bottom:16px;">
-                            <div><label class="label">Driver Name</label><input class="input prefilled" readonly id="driverInfoName"></div>
-                            <div><label class="label">Phone</label><input class="input prefilled" readonly id="driverInfoPhone"></div>
-                            <div><label class="label">Vehicle Plate</label><input class="input prefilled" readonly id="driverInfoVehicle"></div>
-                            <div><label class="label">Username (hidden)</label><input class="input prefilled" readonly id="driverInfoUserMasked" style="letter-spacing:0.3em;font-size:1rem;"></div>
+                            <div><label class="label">Conveyor Name</label><input class="input prefilled" readonly id="conveyorInfoName"></div>
+                            <div><label class="label">Telephone</label><input class="input prefilled" readonly id="conveyorInfoPhone"></div>
+                            <div><label class="label">Vehicle Plate</label><input class="input prefilled" readonly id="conveyorInfoVehicle"></div>
+                            <div><label class="label">Username (hidden)</label><input class="input prefilled" readonly id="conveyorInfoUserMasked" style="letter-spacing:0.3em;font-size:1rem;"></div>
                         </div>
-                        <h4 style="color:var(--navy);margin-bottom:8px;">Scan your QR ID card to sign off</h4>
+                        <h4 style="color:var(--navy);margin-bottom:8px;">Conveyor scans their QR ID card to sign off</h4>
                         <button class="btn" id="confirmDriverBtn" onclick="startDriverSignoffScan()" style="width:100%;">
                             📷 SCAN QR TO CONFIRM
                         </button>
@@ -399,14 +395,14 @@
                                 <button onclick="stopDriverSignoffScan()" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:28px;height:28px;font-size:16px;cursor:pointer;z-index:10;">✕</button>
                             </div>
                         </div>
-                        <p style="font-size:0.72rem;color:#888;margin-top:6px;">Scan your QR card to acknowledge the delivery quantity above.</p>
+                        <p style="font-size:0.72rem;color:#888;margin-top:6px;">Conveyor scans their QR ID card to acknowledge the delivery quantity.</p>
                     </div>
                     <div id="driverConfirmedCard" style="display:none;">
                         <div class="driver-verified-banner">
                             <span class="check">✅</span>
                             <div>
-                                <h4 id="confirmedDriverName">Driver confirmed</h4>
-                                <p id="confirmedDriverDetails"></p>
+                                <h4 id="confirmedConveyorName">Driver confirmed</h4>
+                                <p id="confirmedConveyorDetails"></p>
                             </div>
                         </div>
                         <div style="display:flex;justify-content:flex-end;margin-top:14px;">
@@ -439,7 +435,7 @@
             <div class="card-body">
                 <div style="overflow-x:auto;">
                     <table class="data-table">
-                        <thead><tr><th>Date</th><th>Dispatch ID</th><th>PHU</th><th>Expected</th><th>Received</th><th>Variance</th><th>Status</th><th>Driver</th><th>PHU Staff</th></tr></thead>
+                        <thead><tr><th>Date</th><th>Dispatch ID</th><th>PHU</th><th>Expected</th><th>Received</th><th>Variance</th><th>Status</th><th>Conveyor</th><th>PHU Staff</th></tr></thead>
                         <tbody id="recordsBody"></tbody>
                     </table>
                 </div>
@@ -470,7 +466,6 @@ let scanStream  = null;
 let scanTimer   = null;
 let scannedData = null;
 let driverUser  = null;
-let physCountIG2 = 0, physCountPBO = 0;
 let quantityMatch = null;
 let receipts    = JSON.parse(store.get('phu_receipts','[]'));
 
@@ -653,23 +648,7 @@ function processQR(raw) {
 }
 
 
-function lookupDispatch() {
-    const id = document.getElementById('manualDispId').value.trim().toUpperCase();
-    if (!id) { showToast('Enter a dispatch ID', 'error'); return; }
-    const btn = document.getElementById('manualLookupBtn');
-    btn.disabled = true; btn.textContent = 'Searching…';
-    // Check local records only
-    const dmsRecords = JSON.parse(store.get('dms_chiefdom_records','[]'));
-    const rec = dmsRecords.find(r => (r.id||'').toUpperCase() === id);
-    if (rec) {
-        scannedData = normaliseDispatch(rec);
-        prefillForm(scannedData);
-        showToast('Dispatch found', 'success');
-    } else {
-        showToast('Dispatch ID "' + id + '" not found locally. Scan the QR instead.', 'error');
-    }
-    btn.disabled = false; btn.textContent = 'LOOKUP';
-}
+
 
 // Normalise different field name formats from GAS vs localStorage
 function normaliseDispatch(d) {
@@ -725,11 +704,9 @@ function prefillForm(data) {
     document.getElementById('fDistrict').value = data.district   || currentUser?.district || '';
     document.getElementById('fChiefdom').value = data.chiefdom   || currentUser?.chiefdom || '';
     document.getElementById('fPHU').value      = data.phu        || currentUser?.phu      || '';
-    document.getElementById('fDmsStaff').value = data.dmsStaff   || '';
-    document.getElementById('fDriver').value   = (data.driverName||'') + (data.driverPhone?' · '+data.driverPhone:'');
+    
+    document.getElementById('fConveyor').value = data.driverName || data.conveyor || '';
     document.getElementById('fVehicle').value  = data.vehiclePlate || '';
-    document.getElementById('qtyIG2Expected').textContent   = data.ig2   ?? '—';
-    document.getElementById('qtyPBOExpected').textContent   = data.pbo   ?? '—';
     document.getElementById('qtyTotalExpected').textContent = data.total ?? '—';
     document.getElementById('bannerTitle').textContent = 'PHU: ' + (data.phu || currentUser?.phu || '—');
     document.getElementById('bannerSub').textContent   = 'Dispatched ' + (data.total||0) + ' ITNs on ' + (data.date||'—') + ' by ' + (data.driverName||'—');
@@ -740,28 +717,23 @@ function prefillForm(data) {
 // QUANTITY VERIFICATION
 // ═══════════════════════════════════════════
 function recalcCount() {
-    physCountIG2 = parseInt(document.getElementById('physIG2').value)||0;
-    physCountPBO = parseInt(document.getElementById('physPBO').value)||0;
-    const physTotal = physCountIG2 + physCountPBO;
-    document.getElementById('physTotal').value = physTotal;
+    const physTotal = parseInt(document.getElementById('physTotal').value)||0;
     if (!scannedData) return;
-    const expIG2=parseInt(scannedData.ig2)||0, expPBO=parseInt(scannedData.pbo)||0, expTotal=parseInt(scannedData.total)||0;
-    const varIG2=physCountIG2-expIG2, varPBO=physCountPBO-expPBO, varTotal=physTotal-expTotal;
+    const expTotal = parseInt(scannedData.total)||0;
+    const varTotal = physTotal - expTotal;
     quantityMatch = (varTotal===0);
-    document.getElementById('qtyIG2Box').className   = 'qty-box '+(varIG2===0?'match':'mismatch');
-    document.getElementById('qtyPBOBox').className   = 'qty-box '+(varPBO===0?'match':'mismatch');
-    document.getElementById('qtyTotalBox').className = 'qty-box '+(varTotal===0?'match':'mismatch');
+    document.getElementById('qtyTotalBox').className = 'qty-box '+(quantityMatch?'match':'mismatch');
     const vs = document.getElementById('varianceStatus');
     vs.style.display = 'block';
     if (quantityMatch) {
-        vs.innerHTML = `<div class="status-banner match"><span class="icon">✅</span><div><h4>QUANTITIES MATCH</h4><p>Physical count of <strong>${physTotal}</strong> ITNs matches dispatch.</p></div></div>`;
+        vs.innerHTML = `<div class="status-banner match"><span class="icon">✅</span><div><h4>QUANTITIES MATCH</h4><p>Physical count of <strong>${physTotal}</strong> Dual-AI ITNs matches dispatch.</p></div></div>`;
         document.getElementById('discrepancySection').style.display='none';
     } else {
         const diff=Math.abs(varTotal), dir=varTotal<0?`SHORT by ${diff}`:`EXCESS of ${diff}`;
         vs.innerHTML = `<div class="status-banner mismatch"><span class="icon">⚠️</span><div><h4>MISMATCH — ${dir} ITNs</h4><p>Expected <strong>${expTotal}</strong>, counted <strong>${physTotal}</strong>. Select reason below.</p></div></div>`;
         document.getElementById('discrepancySection').style.display='block';
     }
-    const ready = document.getElementById('physIG2').value!=='' && document.getElementById('physPBO').value!=='';
+    const ready = document.getElementById('physTotal').value !== '';
     document.getElementById('proceedToDriverBtn').disabled = !(ready && (quantityMatch || document.getElementById('discReason').value!==''));
 }
 document.getElementById('discReason').addEventListener('change', recalcCount);
@@ -769,17 +741,17 @@ document.getElementById('proceedToDriverBtn').addEventListener('click', () => {
     if (!quantityMatch && !document.getElementById('discReason').value) { showToast('Select a discrepancy reason','error'); return; }
     goToStep(3); renderDriverStep();
 });
-document.getElementById('rescanBtn').addEventListener('click', () => { scannedData=null; quantityMatch=null; driverUser=null; document.getElementById('physIG2').value=''; document.getElementById('physPBO').value=''; document.getElementById('physTotal').value=''; document.getElementById('varianceStatus').style.display='none'; document.getElementById('discrepancySection').style.display='none'; document.getElementById('proceedToDriverBtn').disabled=true; goToStep(1); });
+document.getElementById('rescanBtn').addEventListener('click', () => { scannedData=null; quantityMatch=null; driverUser=null; document.getElementById('physTotal').value=''; document.getElementById('varianceStatus').style.display='none'; document.getElementById('discrepancySection').style.display='none'; document.getElementById('proceedToDriverBtn').disabled=true; goToStep(1); });
 
 // ═══════════════════════════════════════════
 // DRIVER SIGN-OFF
 // ═══════════════════════════════════════════
 function renderDriverStep() {
     const exp=parseInt(scannedData.total)||0, physTot=physCountIG2+physCountPBO, variance=physTot-exp;
-    document.getElementById('driverInfoName').value    = scannedData.driverName    || '—';
-    document.getElementById('driverInfoPhone').value   = scannedData.driverPhone   || '—';
-    document.getElementById('driverInfoVehicle').value = scannedData.vehiclePlate  || '—';
-    document.getElementById('driverInfoUserMasked').value = '●'.repeat((scannedData.driverUsername||'').length);
+    document.getElementById('conveyorInfoName').value  = scannedData.driverName || scannedData.conveyor || '—';
+    document.getElementById('conveyorInfoPhone').value = scannedData.driverPhone || '—';
+    document.getElementById('conveyorInfoVehicle').value = scannedData.vehiclePlate || '—';
+    document.getElementById('conveyorInfoUserMasked').value = '●'.repeat((scannedData.driverUsername||'').length);
     const bDiv = document.getElementById('driverSummaryBanner');
     if (quantityMatch) {
         bDiv.innerHTML=`<div class="status-banner match" style="margin-bottom:14px;"><span class="icon">✅</span><div><h4>QUANTITIES MATCH</h4><p>Expected: ${exp} &nbsp;|&nbsp; Received: ${physTot} &nbsp;|&nbsp; Variance: 0</p></div></div>`;
@@ -824,12 +796,11 @@ function confirmDriverByQR(qrText) {
     var parsed = parseQR(qrText);
     var name = parsed.name || scannedData.driverName || 'Unknown';
     driverUser = { username: parsed.id || name, full_name: name, phone: parsed.tel || scannedData.driverPhone || '' };
-    document.getElementById('confirmedDriverName').textContent = name + ' confirmed';
-    document.getElementById('confirmedDriverDetails').textContent =
+    document.getElementById('confirmedConveyorName').textContent = name + ' confirmed';
+    document.getElementById('confirmedConveyorDetails').textContent =
         (scannedData.vehiclePlate || '') + (parsed.tel ? ' · ' + parsed.tel : '');
     document.getElementById('driverConfirmedCard').style.display = 'block';
-    document.getElementById('driverConfirmSection').style.display = 'none';
-    showToast('Driver confirmed — ready to finalise', 'success');
+    showToast('Conveyor confirmed — ready to finalise', 'success');
 }
 
 // Legacy no-op
@@ -841,16 +812,16 @@ function confirmDriver() {}
 document.getElementById('finaliseBtn').addEventListener('click', finalise);
 async function finalise(){
     if(!driverUser||!scannedData||!currentUser)return;
-    const physTot=physCountIG2+physCountPBO, expTotal=parseInt(scannedData.total)||0, variance=physTot-expTotal;
+    const physTot=parseInt(document.getElementById('physTotal').value)||0, expTotal=parseInt(scannedData.total)||0, variance=physTot-expTotal;
     const receipt={
         id:'PHU-'+Date.now(), dispatchId:scannedData.dispatchId, confirmedAt:new Date().toISOString(),
         confirmedDate:new Date().toLocaleDateString(), confirmedTime:new Date().toLocaleTimeString(),
         district:scannedData.district||currentUser.district, chiefdom:scannedData.chiefdom||currentUser.chiefdom,
         phu:scannedData.phu||currentUser.phu, dmsStaff:scannedData.dmsStaff||'',
-        driverName:scannedData.driverName||'', driverUsername:scannedData.driverUsername||'',
+        conveyorName:scannedData.driverName||scannedData.conveyor||'', conveyorUsername:scannedData.driverUsername||'',
         vehiclePlate:scannedData.vehiclePlate||'', dispatchDate:scannedData.date||'',
-        expectedIG2:parseInt(scannedData.ig2)||0, expectedPBO:parseInt(scannedData.pbo)||0, expectedTotal:expTotal,
-        receivedIG2:physCountIG2, receivedPBO:physCountPBO, receivedTotal:physTot, variance,
+        expectedTotal:expTotal,
+        receivedTotal:physTot, variance,
         quantityMatch:variance===0, discrepancyReason:document.getElementById('discReason').value||'',
         discrepancyNotes:document.getElementById('discNotes').value||'',
         phuStaffName:currentUser.full_name, phuStaffUsername:currentUser.username, driverConfirmed:true,
@@ -939,7 +910,7 @@ function goToStep(n){
 }
 function resetAll(){
     scannedData=null;driverUser=null;quantityMatch=null;physCountIG2=0;physCountPBO=0;
-    ['physIG2','physPBO','physTotal','manualDispId','discReason','discNotes'].forEach(id=>{
+    ['physTotal','discReason','discNotes'].forEach(id=>{
         const el=document.getElementById(id); if(el)el.value='';
     });
     document.getElementById('varianceStatus').style.display='none';
