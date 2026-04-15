@@ -286,6 +286,11 @@ function validateQR(d) {
     if (!d.district) missing.push('District');
     if (!d.tel)      missing.push('Telephone');
     if (missing.length) return 'Invalid QR — missing: ' + missing.join(', ') + '.';
+    // Only PHU Staff and Teachers can register devices
+    var allowedRoles = ['PHU Staff', 'Teacher'];
+    if (allowedRoles.indexOf(d.role) === -1) {
+        return 'Access denied. Only PHU Staff and Teachers can use the Device Tag app. Your role is: ' + d.role + '.';
+    }
     return null;
 }
 
